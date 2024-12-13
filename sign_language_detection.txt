@@ -1,0 +1,119 @@
+### Importing Necessary Modules
+```python
+import requests
+from bs4 import BeautifulSoup
+import webbrowser
+```
+1. **`requests`**: This module is used to send HTTP requests to websites and get the responses. We use it to fetch web pages.
+2. **`BeautifulSoup`**: This comes from the `bs4` module, and it's used for parsing HTML and XML documents. In this case, it's used to scrape the HTML content of the webpage.
+3. **`webbrowser`**: This is a built-in Python module that allows you to open web pages in a web browser.
+
+### Base URL of the ASL Website
+```python
+asl_website = "https://www.signasl.org/sign/"
+```
+- **`asl_website`**: This variable stores the base URL of the ASL website. The full URL to the sign language video is constructed by appending the specific phrase to this base URL (e.g., `https://www.signasl.org/sign/hello`).
+
+### Function to Search and Extract the ASL Video URL
+```python
+def search_asl_phrase(phrase):
+```
+- **`search_asl_phrase`**: This is a function that takes a **`phrase`** (like "hello" or "how are you") and searches for it on the ASL website. It attempts to find the corresponding ASL video and then display it.
+
+#### Formatting the Phrase
+```python
+    formatted_phrase = phrase.replace(" ", "-")
+    phrase_url = f"{asl_website}{formatted_phrase}"
+    print(f"Checking URL: {phrase_url}")
+```
+- **`formatted_phrase`**: This line replaces any spaces in the input phrase with hyphens. This is because the website uses hyphens to separate words in multi-word phrases (e.g., "how are you" becomes "how-are-you").
+- **`phrase_url`**: The full URL is constructed by concatenating the base URL (`asl_website`) with the formatted phrase (e.g., `https://www.signasl.org/sign/how-are-you`).
+- **`print(f"Checking URL: {phrase_url}")`**: This outputs the URL that will be checked for the phrase to the console.
+
+#### Making an HTTP Request to Get the Page Content
+```python
+    response = requests.get(phrase_url)
+```
+- **`requests.get(phrase_url)`**: This line sends a GET request to the constructed URL. It fetches the HTML content of the webpage corresponding to the phrase (e.g., the ASL video page for "hello").
+
+#### Checking the Response Status
+```python
+    if response.status_code == 200:
+```
+- **`response.status_code == 200`**: This checks whether the request was successful. A status code of `200` means the page exists and was retrieved correctly.
+
+#### Parsing the HTML Content
+```python
+        soup = BeautifulSoup(response.text, 'html.parser')
+```
+- **`BeautifulSoup(response.text, 'html.parser')`**: This parses the HTML content of the page into a BeautifulSoup object (`soup`), which allows us to easily search and navigate the page's elements.
+
+#### Extracting the Video URL
+```python
+        video_tag = soup.find('video')
+```
+- **`soup.find('video')`**: This searches the parsed HTML for the first `<video>` tag. In the ASL website's page structure, the video is usually embedded in a `<video>` tag.
+
+#### Finding the Video Source URL
+```python
+        if video_tag and video_tag.find('source'):
+            video_url = video_tag.find('source')['src']
+```
+- **`video_tag.find('source')`**: If the `<video>` tag is found, this line searches for the `<source>` tag inside it, which contains the actual URL for the video.
+- **`video_url = video_tag.find('source')['src']`**: This extracts the `src` attribute of the `<source>` tag, which contains the video URL.
+
+#### Opening the Video URL in the Browser
+```python
+            print(f"Found video for '{phrase}': {video_url}")
+            webbrowser.open(video_url)
+```
+- **`print(f"Found video for '{phrase}': {video_url}")`**: This outputs the found video URL to the console, showing the user which video was found.
+- **`webbrowser.open(video_url)`**: This opens the video URL in the default web browser, allowing the user to watch the video.
+
+#### Handling the Case Where No Video is Found
+```python
+        else:
+            print(f"No video found for: {phrase}")
+```
+- **`else`**: If no `<video>` tag or no `<source>` tag is found, it prints that no video was found for the given phrase.
+
+#### Handling Non-Existent Pages
+```python
+    else:
+        print(f"Page not found for phrase: {phrase_url}")
+```
+- If the page corresponding to the phrase doesn't exist (i.e., if the status code is not 200), this prints a message saying the page could not be found.
+
+#### Handling Request Errors
+```python
+    except requests.RequestException as e:
+        print(f"An error occurred while searching: {e}")
+```
+- **`except requests.RequestException as e`**: This catches any errors that might occur during the HTTP request (e.g., network issues, invalid URL) and prints an error message.
+
+### Main Function to Run the Program
+```python
+def main():
+    print("ASL Phrase Video Finder")
+    phrase = input("Enter a phrase to search for (e.g., hello, how are you): ").strip().lower()
+    search_asl_phrase(phrase)
+```
+- **`main()`**: This is the main function that runs when the script is executed.
+- **`input("Enter a phrase to search for (e.g., hello, how are you): ").strip().lower()`**: This prompts the user to enter a phrase. It removes extra spaces around the input and converts it to lowercase to ensure the input is handled consistently.
+- **`search_asl_phrase(phrase)`**: This calls the `search_asl_phrase` function with the user input.
+
+### Running the Script
+```python
+if __name__ == "__main__":
+    main()
+```
+- **`if __name__ == "__main__":`**: This condition ensures that the `main()` function is only called when the script is run directly (not when it is imported as a module).
+- **`main()`**: Calls the `main()` function to start the program.
+
+### Summary:
+1. The program takes an input phrase (like "hello" or "how are you").
+2. It constructs a URL by replacing spaces with hyphens and checks if the corresponding page exists on the ASL website.
+3. If the page exists, it parses the page to find the video URL and opens it in the browser.
+4. If no video is found, it prints a message saying so.
+
+Let me know if you need further clarifications or improvements!
